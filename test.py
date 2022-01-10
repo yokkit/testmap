@@ -14,11 +14,7 @@ hospitals = st.sidebar.radio('災害拠点病院を表示',('する','しない'
 
 chiba_city = [35.609985,140.118126]
 m = folium.Map(location=chiba_city, tiles='cartodbpositron', zoom_start=8)
-hosp_df.apply(lambda r: folium.Marker(location=[r['緯度'], r['経度']], 
-                                                popup=r['機関名']+'　　　　　　　　　　　　　',
-                                                icon=folium.Icon(icon="header"),
-                                                ).add_to(m), axis=1)
 
 st.header('テストデータのアップロードです')
-st.subheader('千葉県のマップだけ載せてます。動きません')
+st.subheader('千葉県のマップだけ載せてます。今は動きません')
 folium_static(m)
