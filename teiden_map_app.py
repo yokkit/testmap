@@ -1,9 +1,10 @@
-# streamlit　でアップロードするウエブアプリを作っていく
 import folium
 import json
 import pandas as pd
-import numpy as np
-import plotly.express as px
+# import numpy as np
+# import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 import streamlit as st
 from streamlit_folium import folium_static
 
@@ -81,9 +82,37 @@ def show_linechart():
     千葉県内の停電世帯の推移をラインチャートで表示する関数です。
     '''
     st.subheader('千葉県内の停電世帯の推移')
-    fig = px.line(chiba_total_teiden_suii, 
-        x = "日時", y = "停電戸数")
+    
+    # Create figure with secondary y-axis
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+    # Add traces
+    fig.add_trace(
+        go.Scatter(x=chiba_total_teiden_suii['日時'], 
+                y=chiba_total_teiden_suii['停電戸数'], 
+                mode='lines+markers', 
+                name='停電戸数',
+                line=dict(color='firebrick', width=3)),
+        secondary_y=False,
+    )
+
+    fig.add_trace(
+        go.Scatter(x=chiba_total_teiden_suii['日時'], 
+                y=chiba_total_teiden_suii['停電市町村数'], 
+                name="停電市町村数",
+                mode='lines+markers',
+                line=dict(color='royalblue', width=2, dash='dot')),
+        secondary_y=True,
+    )
+
+    # Set x-axis title
+    fig.update_xaxes(title_text="日時")
+
+    # Set y-axes titles
+    fig.update_yaxes(title_text="戸数", secondary_y=False)
+    fig.update_yaxes(title_text="市町村数", secondary_y=True)
     fig.update_xaxes(tickangle=45)
+
     st.plotly_chart(fig)
 
 def main():
