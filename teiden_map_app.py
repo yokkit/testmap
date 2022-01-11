@@ -30,7 +30,7 @@ def make_map_to_web(date_value, hospitals, m):
     min_teiden = chiba_teiden_df.iloc[:,4:].min().min()
     threshold = [min_teiden, 10000, 30000, 50000, 70000, 90000]
 
-    folium.Choropleth(
+    choropleth = folium.Choropleth(
         geo_data=chiba_geojson,
         name='choropleth',
         key_on= 'feature.properties.N03_004',
@@ -42,6 +42,21 @@ def make_map_to_web(date_value, hospitals, m):
         nan_fill_color = 'transparent',
     #     nan_fill_opacity = 0.1,
     ).add_to(m)
+
+    # マウスオーバーで各市の停電戸数を表示します
+    choropleth.geojson.add_child(
+    folium.features.GeoJsonTooltip(fields=['N03_004', date_value],
+                                   aliases=['市:', '停電戸数:'],
+                                   labels=True,
+                                   localize=True,
+                                   sticky=False,
+                                   style="""
+                                   background-color: #F0EFEF;
+                                   border: 2px solid black;
+                                   border-radius: 3px;
+                                   box-shadow: 3px;
+                                   """,)
+                                   )
 
     if hospitals=='する':
         show_hospital(m)
