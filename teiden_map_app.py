@@ -86,10 +86,14 @@ def show_linechart():
     fig.update_xaxes(tickangle=45)
     st.plotly_chart(fig)
 
-st.header('令和元年房総半島台風（台風15号）')
-info_type = st.sidebar.radio('表示する内容を選択',
-            ('停電世帯のマップ', '停電世帯数の推移チャート'))
-if info_type == '停電世帯数の推移チャート':
-    show_linechart()
-else:
-    show_maps()
+def main():
+    st.header('令和元年房総半島台風（台風15号）')
+    info_type = st.sidebar.radio('表示する内容を選択',
+                ('停電世帯のマップ', '停電世帯数の推移チャート'))
+    if info_type == '停電世帯数の推移チャート':
+        show_linechart()
+    else:
+        show_maps()
+
+if __name__ == "__main__":
+    main()
