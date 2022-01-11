@@ -8,7 +8,7 @@ from plotly.subplots import make_subplots
 import streamlit as st
 from streamlit_folium import folium_static
 
-with open('N03-18_12_180101.geojson', encoding='utf-8') as fh:
+with open('chiba.geojson', encoding='utf-8') as fh:
     chiba_geojson = json.load(fh)
 chiba_teiden_df = pd.read_csv('./chiba_teiden_2.csv', index_col=0)
 hosp_df = pd.read_csv('./chiba_saigai_kyoten_hospitals.csv', index_col=0)
