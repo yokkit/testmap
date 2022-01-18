@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import streamlit as st
 from streamlit_folium import folium_static
+import openpyxl
 
 with open('chiba.geojson', encoding='utf-8') as fh:
     chiba_geojson = json.load(fh)
