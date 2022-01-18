@@ -1,8 +1,6 @@
 import folium
 import json
 import pandas as pd
-# import numpy as np
-# import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import streamlit as st
@@ -14,6 +12,8 @@ chiba_teiden_df = pd.read_csv('./chiba_teiden_2.csv', index_col=0)
 hosp_df = pd.read_csv('./chiba_saigai_kyoten_hospitals.csv', index_col=0)
 total_teiden_df = pd.read_csv('./total_teiden_df.csv', index_col=0)
 chiba_total_teiden_suii = pd.read_csv('./chiba_total_teiden_suii.csv', index_col=0)
+chiba_dansui= pd.read_excel('./dansui.xlsx', sheet_name=0)
+chiba_dansui.columns=['水道企業団', '該当市', '2019/9/9 15:45', '2019/9/9 18:47', '2019/9/10 14:31', '2019/9/10 17:36']
 
 def show_hospital(m):
     """
@@ -46,24 +46,24 @@ def make_map_to_web(date_value, hospitals, m):
     # マウスオーバーで各市の停電戸数を表示します
     choropleth.geojson.add_child(
     folium.features.GeoJsonTooltip(fields=['N03_004', date_value],
-                                   aliases=['市:', '停電戸数:'],
-                                   labels=True,
-                                   localize=True,
-                                   sticky=False,
-                                   style="""
-                                   background-color: #F0EFEF;
-                                   border: 2px solid black;
-                                   border-radius: 3px;
-                                   box-shadow: 3px;
-                                   """,)
-                                   )
+                                aliases=['市:', '停電戸数:'],
+                                labels=True,
+                                localize=True,
+                                sticky=False,
+                                style="""
+                                background-color: #F0EFEF;
+                                border: 2px solid black;
+                                border-radius: 3px;
+                                box-shadow: 3px;
+                                """,)
+                                )
 
     if hospitals=='する':
         show_hospital(m)
 
     folium.LayerControl().add_to(m)
 
-def show_maps():
+def show_teiden_maps():
     """
     千葉県の停電エリアのコレオプレス図を時系列で示すページを表示する関数です。
     """
@@ -130,14 +130,61 @@ def show_linechart():
 
     st.plotly_chart(fig)
 
+def make_dansui_map_to_web(date_value, hospitals, m):
+    """
+    フォリウムでコロプレス（断水地域）とマッピング（災害拠点病院）を作成するための関数です。
+    """
+    threshold = [0, 1000, 10000, 30000, 70000]
+
+    choropleth = folium.Choropleth(
+        geo_data=chiba_geojson,
+        name='choropleth',
+        key_on= 'feature.properties.N03_004',
+        threshold_scale=threshold,
+        data=chiba_dansui,
+        columns=['該当市', date_value],
+        fill_color='YlOrRd',
+        legend_name="断水戸数（戸）",
+        nan_fill_color = 'transparent',
+    #     nan_fill_opacity = 0.1,
+    ).add_to(m)
+
+    if hospitals=='する':
+        show_hospital(m)
+
+    folium.LayerControl().add_to(m)
+
+def show_dansui_maps():
+    """
+    千葉県の断水エリアのコレオプレス図を時系列で示すページを表示する関数です。
+    """
+    add_select = st.sidebar.selectbox("地図のタイプを選択",("OpenStreetMap", "cartodbpositron","Stamen Terrain","Stamen Toner"))
+
+    mobara_city=[35.428528,140.28806]
+
+    m = folium.Map(location=mobara_city, tiles=add_select, zoom_start=9)
+
+    times = ['2019/9/9 15:45', '2019/9/9 18:47', '2019/9/10 14:31', '2019/9/10 17:36']
+    dict_date = dict(zip(times, times))
+    select_data = st.sidebar.radio('閲覧したいデータを選んでください',tuple(times))
+    hospitals = st.sidebar.radio('災害拠点病院を表示',('する','しない'))
+
+    make_dansui_map_to_web(select_data, hospitals, m)
+
+    st.subheader(f'千葉県内の断水エリアマップ {select_data}時点')
+
+    folium_static(m)
+
 def main():
     st.header('令和元年房総半島台風（台風15号）')
     info_type = st.sidebar.radio('表示する内容を選択',
-                ('停電世帯のマップ', '停電世帯数の推移チャート'))
+                ('停電世帯のマップ', '停電世帯数の推移チャート', '断水世帯のマップ'))
     if info_type == '停電世帯数の推移チャート':
         show_linechart()
+    elif info_type == '停電世帯のマップ':
+        show_teiden_maps()
     else:
-        show_maps()
+        show_dansui_maps()
 
 if __name__ == "__main__":
     main()
