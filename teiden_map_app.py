@@ -17,6 +17,7 @@ chiba_total_teiden_suii = pd.read_csv('./chiba_total_teiden_suii.csv', index_col
 chiba_dansui= pd.read_excel('./dansui.xlsx', sheet_name=0)
 chiba_dansui.columns=['水道企業団', '該当市', '2019/9/9 15:45', '2019/9/9 18:47', '2019/9/10 14:31', '2019/9/10 17:36']
 chiba_dansui[chiba_dansui==0] = np.nan
+total_dansui = pd.read_csv('./total_dansui.csv', index_col=0)
 
 def show_hospital(m):
     """
@@ -193,7 +194,11 @@ def show_dansui_maps():
     make_dansui_map_to_web(select_data, hospitals, m)
 
     st.subheader(f'千葉県内の断水エリアマップ {select_data}時点')
-
+    total_dansui_number = total_dansui.loc[select_data]['総断水世帯数']
+    diffs_dansui=total_dansui.loc[select_data]['差']
+    st.metric(label="千葉県内の総断水戸数", 
+            value=int(total_dansui_number), 
+            delta=int(diffs_dansui))
     folium_static(m)
 
 def main():
