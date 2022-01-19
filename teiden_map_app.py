@@ -1,13 +1,14 @@
 import folium
 import json
 import pandas as pd
+import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import streamlit as st
 from streamlit_folium import folium_static
 import openpyxl
 
-with open('chiba.geojson', encoding='utf-8') as fh:
+with open('chiba_general.geojson', encoding='utf-8') as fh:
     chiba_geojson = json.load(fh)
 chiba_teiden_df = pd.read_csv('./chiba_teiden_2.csv', index_col=0)
 hosp_df = pd.read_csv('./chiba_saigai_kyoten_hospitals.csv', index_col=0)
@@ -15,6 +16,7 @@ total_teiden_df = pd.read_csv('./total_teiden_df.csv', index_col=0)
 chiba_total_teiden_suii = pd.read_csv('./chiba_total_teiden_suii.csv', index_col=0)
 chiba_dansui= pd.read_excel('./dansui.xlsx', sheet_name=0)
 chiba_dansui.columns=['水道企業団', '該当市', '2019/9/9 15:45', '2019/9/9 18:47', '2019/9/10 14:31', '2019/9/10 17:36']
+chiba_dansui[chiba_dansui==0] = np.nan
 
 def show_hospital(m):
     """
@@ -44,9 +46,10 @@ def make_map_to_web(date_value, hospitals, m):
     #     nan_fill_opacity = 0.1,
     ).add_to(m)
 
+    date_value_name = f'teiden_{date_value}'
     # マウスオーバーで各市の停電戸数を表示します
     choropleth.geojson.add_child(
-    folium.features.GeoJsonTooltip(fields=['N03_004', date_value],
+    folium.features.GeoJsonTooltip(fields=['N03_004', date_value_name],
                                 aliases=['市:', '停電戸数:'],
                                 labels=True,
                                 localize=True,
@@ -135,7 +138,8 @@ def make_dansui_map_to_web(date_value, hospitals, m):
     """
     フォリウムでコロプレス（断水地域）とマッピング（災害拠点病院）を作成するための関数です。
     """
-    threshold = [0, 1000, 10000, 30000, 70000]
+    min_dansui = chiba_dansui.iloc[:,2:].min().min()
+    threshold = [min_dansui, 1000, 10000, 30000, 70000]
 
     choropleth = folium.Choropleth(
         geo_data=chiba_geojson,
@@ -149,6 +153,22 @@ def make_dansui_map_to_web(date_value, hospitals, m):
         nan_fill_color = 'transparent',
     #     nan_fill_opacity = 0.1,
     ).add_to(m)
+
+    date_value_name = f'dansui_{date_value}'
+    # マウスオーバーで各市の断水戸数を表示します
+    choropleth.geojson.add_child(
+    folium.features.GeoJsonTooltip(fields=['N03_004', date_value_name],
+                                aliases=['市:', '断水戸数:'],
+                                labels=True,
+                                localize=True,
+                                sticky=False,
+                                style="""
+                                background-color: #F0EFEF;
+                                border: 2px solid black;
+                                border-radius: 3px;
+                                box-shadow: 3px;
+                                """,)
+                                )
 
     if hospitals=='する':
         show_hospital(m)
